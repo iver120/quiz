@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naturfag Quiz - 10. trinn</title>
+    <!-- Vi legger til Chart.js biblioteket her -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.1);
+        }
+        .question {
+            margin-bottom: 25px;
+            display: none;
+        }
+        .question.active {
+            display: block;
+        }
+        .question h3 { color: #00509e; font-size: 1.4rem; }
+        .question p { font-size: 1.1rem; line-height: 1.6; }
+        button {
+            background-color: #00509e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #003f7d;
+            transform: translateY(-2px);
+        }
+        .results, .choose-topic, .hard-quiz, .hard-results {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+        h2 { color: #00509e; }
+        .progress-bar { width: 100%; height: 10px; background-color: #e0e0e0; margin-bottom: 20px; border-radius: 5px; overflow: hidden; }
+        .progress { height: 100%; background-color: #28a745; width: 0%; transition: width 0.3s ease-in-out; border-radius: 5px; }
+        
+        .results-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .chart-container {
+            flex: 1.5;
+            min-width: 300px;
+            position: relative;
+        }
+        .feedback-container {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .category {
+            margin: 15px 0;
+            padding: 15px;
+            border-left: 5px solid #00509e;
+            background-color: #f9f9f9;
+            text-align: left;
+            border-radius: 5px;
+        }
+        .category strong { font-size: 1.2rem; }
+        .category a { color: #00509e; text-decoration: none; font-weight: bold; }
+        .category a:hover { text-decoration: underline; }
+        .topic-btn { background-color: #f0f8ff; color: #00509e; border: 2px solid #00509e; margin: 8px; font-weight: bold; }
+        .topic-btn:hover { background-color: #00509e; color: white; }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="intro-screen">
+            <h1>Naturfag Eksamensquiz</h1>
+            <p>Test kunnskapene dine med 30 grunnleggende spørsmål fra pensum. Etterpå får du se hva du bør øve mer på, og du kan utfordre deg selv med vanskelige spørsmål i dine sterkeste temaer!</p>
+            <button id="start-quiz-btn">Start Quizen!</button>
+        </div>
+
+        <div id="main-quiz" style="display:none;">
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+            <div id="question-container"></div>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Resultater fra Grunnquizen</h2>
+            <p>Du fikk <span id="score">0</span> av 30 riktige!</p>
+            <div class="results-container">
+                <div class="chart-container">
+                    <h3>Din Kunnskapsprofil:</h3>
+                    <canvas id="resultsChart"></canvas>
+                </div>
+                <div class="feedback-container">
+                    <div id="feedback"></div>
+                </div>
+            </div>
+            <div id="best-topics" style="margin-top: 20px;"></div>
+            <div id="next-step"></div>
+        </div>
+
+        <div class="choose-topic" id="choose-topic">
+            <h2>Velg et tema for ekspertquizen:</h2>
+            <p>Du var sterkest i disse temaene. Velg ett for å prøve deg på 5 vanskelige spørsmål.</p>
+            <div id="topic-buttons"></div>
+        </div>
+
+        <div class="hard-quiz" id="hard-quiz">
+            <div id="hard-question-container"></div>
+        </div>
+
+        <div class="hard-results" id="hard-results">
+            <h2>Resultater – Ekspertquizen</h2>
+            <p>Du fikk <span id="hard-score">0</span> av 5 riktige!</p>
+            <button onclick="location.reload()">Start på nytt</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {question: "Hva er hovedkilden til energi for jordens klimasystem?", answers: ["Kjernekraft", "Solstråling", "Vindkraft", "Geotermisk energi"], correct: 1, category: "Energi"},
+            {question: "Hva menes med energikvalitet?", answers: ["Hvor mye energi som finnes i et stoff", "Hvor lett energi kan brukes til nyttig arbeid", "Hvor mye varmeenergi som avgis", "Hvor mye energi som tapes i et system"], correct: 1, category: "Energi"},
+            {question: "Hva er den vanligste energiovergangen i et vannkraftverk?", answers: ["Kjemisk energi til elektrisk energi", "Bevegelsesenergi til elektrisk energi", "Strålingsenergi til varmeenergi", "Elektrisk energi til kjemisk energi"], correct: 1, category: "Energi"},
+            {question: "Hva beskriver platetektonikk?", answers: ["Atmosfærens lagdeling", "Bevegelse av jordskorpeplater", "Havstrømmer", "Værmønstre"], correct: 1, category: "Jordvitenskap"},
+            {question: "Hva driver bevegelsen av jordskorpeplatene?", answers: ["Solenergi", "Vannets kretsløp", "Varme fra jordas indre (konveksjonsstrømmer)", "Tyngdekraften fra månen"], correct: 2, category: "Jordvitenskap"},
+            {question: "Hva heter prosessen der en havbunnsplate presses ned under en annen plate?", answers: ["Spredningssone", "Subduksjon", "Transformforkastning", "Jordskjelv"], correct: 1, category: "Jordvitenskap"},
+            {question: "Hva er drivhuseffekten?", answers: ["Når solstråler reflekteres av skyene", "Når atmosfæren slipper ut all varme", "Når visse gasser holder på varmen fra jorda", "Når havet lagrer varme"], correct: 2, category: "Klima"},
+            {question: "Hvilken gass bidrar mest til menneskeskapt global oppvarming?", answers: ["Nitrogen", "Oksygen", "Karbondioksid (CO₂)", "Metan"], correct: 2, category: "Klima"},
+            {question: "Hva kan være en konsekvens av økt CO₂ i atmosfæren?", answers: ["Sterkere jordskjelv", "Havforsuring", "Mindre nedbør", "Mer oksygen i lufta"], correct: 1, category: "Klima"},
+            {question: "Hvilket organelle er ansvarlig for celleånding?", answers: ["Kloroplast", "Cellemembran", "Mitokondrium", "Cellekjerne"], correct: 2, category: "Cellebiologi"},
+            {question: "Hvor skjer fotosyntesen i plantecellen?", answers: ["Mitokondriene", "Kloroplastene", "Cellekjernen", "Cellemembranen"], correct: 1, category: "Cellebiologi"},
+            {question: "Hva er DNA?", answers: ["Et protein", "Arvestoffet i cellene", "En type sukker", "En celleorganell"], correct: 1, category: "Cellebiologi"},
+            {question: "Hva er naturlig utvalg?", answers: ["At alle individer overlever", "At de best tilpassede individene har størst sjanse for å få avkom", "At egenskaper ikke kan endres", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon"},
+            {question: "Hva kan mutasjoner føre til?", answers: ["Ingen endring i egenskaper", "Nye egenskaper som kan arves", "At alle organismer dør", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon"},
+            {question: "Hva brukes fossiler til i naturfag?", answers: ["Å lage energi", "Å forstå livets utvikling", "Å måle temperatur", "Å lage medisiner"], correct: 1, category: "Evolusjon"},
+            {question: "Hva er hovedoppgaven til nervesystemet?", answers: ["Å produsere hormoner", "Å sende raske, elektriske signaler i kroppen", "Å beskytte mot sykdom", "Å lage energi"], correct: 1, category: "Signalsystemer"},
+            {question: "Hva gjør hormonsystemet?", answers: ["Sender kjemiske signaler i blodet", "Produserer oksygen", "Styrer fordøyelsen alene", "Sender elektriske signaler"], correct: 0, category: "Signalsystemer"},
+            {question: "Hvordan påvirker rusmidler ofte hjernen?", answers: ["De styrker alltid hjernecellene", "De kan forstyrre signaloverføringen mellom nerveceller", "De har ingen langtidseffekt", "De bygger nye nerveceller"], correct: 1, category: "Signalsystemer"},
+            {question: "Hva gjør vaksiner?", answers: ["Gjør deg syk med vilje", "Trener immunforsvaret til å kjenne igjen smittestoffer", "Fjerner alle bakterier i kroppen", "Er en kur mot alle sykdommer"], correct: 1, category: "Immunforsvar"},
+            {question: "Hva er immunforsvarets hukommelse?", answers: ["At du husker du var syk", "At spesielle celler husker smittestoffer de har møtt før", "At hjernen lagrer informasjon om bakterier", "En myte"], correct: 1, category: "Immunforsvar"},
+            {question: "Hva er antibiotikaresistens?", answers: ["At mennesker er allergiske mot antibiotika", "At virus blir motstandsdyktige mot medisiner", "At bakterier har utviklet seg til å tåle antibiotika", "At antibiotika virker bedre enn før"], correct: 2, category: "Immunforsvar"},
+            {question: "Hva viser gruppenummeret i periodesystemet?", answers: ["Antall protoner i kjernen", "Antall nøytroner", "Antall elektronskall", "Antall ytterelektroner"], correct: 3, category: "Kjemi"},
+            {question: "Hva er et ion?", answers: ["Et atom som har mistet eller fått elektroner", "En blanding av flere stoffer", "Et atom med likt antall protoner og elektroner", "En type molekyl"], correct: 0, category: "Kjemi"},
+            {question: "Hva skjer i en kjemisk reaksjon?", answers: ["Atomene forsvinner", "Atomene bytter plass og danner nye stoffer", "Energien forsvinner alltid", "Bare fargen endres"], correct: 1, category: "Kjemi"},
+            {question: "Hva kan programmering brukes til i naturfag?", answers: ["Bare til å spille spill", "Til å lage modeller og simulere fenomener", "Bare til å skrive rapporter", "Bare til å regne ut matteoppgaver"], correct: 1, category: "Programmering"},
+            {question: "Hva er en modell i naturfag?", answers: ["En forenklet framstilling av virkeligheten", "En person som viser klær", "En eksakt kopi av naturen", "En type celle"], correct: 0, category: "Modeller"},
+            {question: "Hva betyr bærekraftig utvikling?", answers: ["Å bruke opp alle ressurser raskt", "Å dekke dagens behov uten å ødelegge for fremtidige generasjoner", "Å stoppe all teknologisk utvikling", "Å bare fokusere på økonomisk vekst"], correct: 1, category: "Bærekraft"},
+            {question: "Hva er et økosystem?", answers: ["Alle levende organismer og deres ikke-levende miljø i et område", "Bare dyrene i en skog", "Bare plantene i et hav", "Alle menneskene på jorda"], correct: 0, category: "Bærekraft"},
+            {question: "Hva er hovedårsaken til tap av biologisk mangfold?", answers: ["Naturlige vulkanutbrudd", "Menneskelig aktivitet som ødelegger leveområder", "Fotosyntese", "Vær og vind"], correct: 1, category: "Bærekraft"},
+            {question: "Hva menes med systemtenkning i naturfag?", answers: ["Å bare se på én del av gangen", "Å forstå sammenhenger mellom ulike deler og prosesser", "Å bruke bare modeller", "Å bare fokusere på energi"], correct: 1, category: "Systemtenkning"}
+        ];
+
+        const hardQuestions = {
+            'Energi': [
+                {question: "Hva er den viktigste grunnen til at elektrisk energi regnes som høyverdig energi?", answers: ["Den er lett å lagre", "Den kan enkelt omdannes til andre energiformer med lite tap", "Den er billig å produsere", "Den finnes naturlig overalt"], correct: 1},
+                {question: "Hva sier termodynamikkens andre lov om energi?", answers: ["Energi kan ikke skapes eller ødelegges", "Total uorden (entropi) i et isolert system øker alltid", "Varme kan ikke gå fra et kaldt til et varmt legeme av seg selv", "Både B og C er korrekte"], correct: 3},
+                {question: "Hva menes med virkningsgraden til et system?", answers: ["Forholdet mellom nyttig energi ut og tilført energi inn", "Hvor raskt energi brukes", "Hvor mye energi som tapes til omgivelsene", "Hvor mye energi som er lagret totalt"], correct: 0},
+                {question: "Hva er den fundamentale energikilden til de fleste fornybare energikildene på jorda (som vind, vann og biomasse)?", answers: ["Geotermisk varme", "Månens tyngdekraft", "Solenergi", "Kjemiske reaksjoner i atmosfæren"], correct: 2},
+                {question: "Hva slags energiovergang skjer i en solcelle?", answers: ["Kjemisk energi til elektrisk energi", "Strålingsenergi til elektrisk energi", "Bevegelsesenergi til varmeenergi", "Elektrisk energi til varmeenergi"], correct: 1}
+            ],
+            'Jordvitenskap': [
+                {question: "Hva er en 'hotspot' i geologisk forstand?", answers: ["Et område med høy befolkningstetthet", "Et fast punkt i mantelen hvor magma stiger opp og danner vulkaner", "En type jordskjelv", "En midthavsrygg"], correct: 1},
+                {question: "Hva skjer i en transform forkastning, som San Andreas-forkastningen?", answers: ["Platene glir sidelengs forbi hverandre og bygger opp spenning", "Platene kolliderer og danner fjell", "Platene dras fra hverandre og danner ny havbunn", "Platene smelter sammen og danner øyer"], correct: 0},
+                {question: "Hvilket bevis støtter IKKE teorien om Pangea?", answers: ["Like fossiler på forskjellige kontinenter", "Like fjellkjeder på forskjellige kontinenter", "Kontinentenes 'puslespill'-form", "Like havstrømmer i dag som for 200 millioner år siden"], correct: 3},
+                {question: "Hva er den viktigste forskjellen mellom havbunnsplater og kontinentalplater?", answers: ["Havbunnsplater er lettere og tykkere", "Havbunnsplater har høyere tetthet og er tynnere", "Kontinentalplater er alltid under vann", "Havbunnsplater beveger seg ikke"], correct: 1},
+                {question: "Hva er hovedårsaken til jordskjelv ved subduksjonssoner?", answers: ["Magma som presser seg opp", "Spenninger som utløses når en plate presses under en annen", "Vind og vær", "Menneskelig aktivitet"], correct: 1}
+            ],
+            'Klima': [
+                {question: "Hva er hovedforskjellen på vær og klima?", answers: ["Vær er temperatur, klima er nedbør", "Vær er kortsiktige forhold, klima er gjennomsnitt over lang tid", "Klima gjelder kun for polene", "Vær er alltid globalt"], correct: 1},
+                {question: "Hva er et eksempel på en positiv tilbakekoblingsmekanisme i klimasystemet?", answers: ["Mer CO₂ fører til mer plantevekst, som fjerner CO₂", "Smeltende is reduserer jordens albedo, som fører til mer oppvarming", "Økt skydekke reflekterer mer sollys og kjøler jorden", "Havet tar opp CO₂ fra atmosfæren"], correct: 1},
+                {question: "Hva er albedo?", answers: ["En overflates evne til å reflektere sollys", "Mengden CO₂ i atmosfæren", "Temperaturen på havoverflaten", "En type vind"], correct: 0},
+                {question: "Hva er den kjemiske årsaken til havforsuring?", answers: ["Økt oksygen løses i havet", "Økt CO₂ reagerer med vann og danner karbonsyre", "Mindre sollys når havet", "Søppel og plast i havet"], correct: 1},
+                {question: "Hva er hovedformålet med Parisavtalen?", answers: ["Å forby all bruk av fossilt brensel umiddelbart", "Å begrense den globale oppvarmingen til godt under 2 grader", "Å fjerne all plast fra havet", "Å bygge flere vannkraftverk"], correct: 1}
+            ],
+            'Cellebiologi': [
+                {question: "Hva er hovedforskjellen på en prokaryot og en eukaryot celle?", answers: ["Eukaryote har cellevegg, prokaryote har ikke", "Prokaryote celler har en avgrenset cellekjerne, eukaryote har ikke", "Eukaryote celler har en avgrenset cellekjerne og organeller, prokaryote har ikke", "Prokaryote er alltid større enn eukaryote"], correct: 2},
+                {question: "Hva er funksjonen til ribosomene?", answers: ["Å produsere proteiner basert på mRNA-koden", "Å lagre energi i form av ATP", "Å bryte ned avfallsstoffer i cellen", "Å transportere oksygen rundt i kroppen"], correct: 0},
+                {question: "Hva er forskjellen på passiv og aktiv transport gjennom cellemembranen?", answers: ["Passiv transport krever energi, aktiv gjør ikke det", "Aktiv transport krever energi for å flytte stoffer mot konsentrasjonsgradienten", "Begge krever alltid energi", "Ingen av dem krever energi"], correct: 1},
+                {question: "Hva er hovedrollen til mitokondriene?", answers: ["Fotosyntese", "Energiproduksjon (ATP) gjennom celleånding", "Lagring av DNA i cellekjernen", "Produksjon av fett og lipider"], correct: 1},
+                {question: "Hva er et gen?", answers: ["En type celle som lager proteiner", "En del av et DNA-molekyl som inneholder oppskriften på et bestemt protein", "Et protein som bygger opp kromosomer", "En celleorganell som styrer arven"], correct: 1}
+            ],
+            'Evolusjon': [
+                {question: "Hva er en art ifølge det biologiske artsbegrepet?", answers: ["En gruppe individer som kan få fruktbart avkom sammen", "Alle dyr som lever i samme økosystem", "En gruppe individer som ser helt like ut", "En populasjon som ikke endrer seg"], correct: 0},
+                {question: "Hva er seksuell seleksjon?", answers: ["Utvalg basert på tilfeldigheter under paring", "Utvalg basert på egenskaper som øker suksess i konkurransen om partnere", "Utvalg av de sterkeste individene i en populasjon", "At individer velger å ikke pare seg"], correct: 1},
+                {question: "Hva er en tilpasning (adaptasjon)?", answers: ["En tilfeldig egenskap som ikke påvirker overlevelse", "En arvelig egenskap som øker et individs sjanse for å overleve og reprodusere i sitt miljø", "En endring et individ gjør i løpet av livet", "En sykdom som gjør en art sterkere"], correct: 1},
+                {question: "Hva er en felles stamfar (common ancestor)?", answers: ["En organisme som er opphavet til to eller flere ulike artslinjer", "Et fossil som finnes over hele verden", "Den første levende organismen på jorda", "En organisme som er utdødd"], correct: 0},
+                {question: "Hva er en mutasjon?", answers: ["En permanent endring i DNA-sekvensen", "En ny art som oppstår plutselig", "En type celle som deler seg ukontrollert", "Et protein som ikke fungerer"], correct: 0}
+            ]
+        };
+
+        const categoryLinks = {
+    'Energi': [
+        {text: "SNL – Energi", url: "https://snl.no/energi"},
+        {text: "Crash Course: Energy & Chemistry", url: "https://www.youtube.com/watch?v=GqtUWyDR1fg"}
+    ],
+    'Jordvitenskap': [
+        {text: "SNL – Platetektonikk", url: "https://snl.no/platetektonikk"},
+        {text: "Crash Course: Plate Tectonics", url: "https://www.youtube.com/watch?v=kwfNGatxUJI"}
+    ],
+    'Klima': [
+        {text: "Viten.no – Klimaendringer (Interaktiv)", url: "https://viten.no/klima"},
+        {text: "Crash Course: What is Climate Change?", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}
+    ],
+    'Cellebiologi': [
+        {text: "NDLA.no – Cellens deler og funksjoner", url: "https://ndla.no/nb/r/naturfag-sf/cella/1eeab098e4"},
+        {text: "Crash Course: A Tour of the Cell", url: "https://www.youtube.com/watch?v=8IlzKri08kk"}
+    ],
+    'Evolusjon': [
+        {text: "Viten.no – Evolusjon (Interaktiv)", url: "https://viten.no/evolusjon/"},
+        {text: "Crash Course: Intro to Evolution", url: "https://www.youtube.com/watch?v=P3GagfbA2vo"}
+    ],
+    'Signalsystemer': [
+        {text: "SNL – Nervesystemet", url: "https://snl.no/nervesystemet"},
+        {text: "Crash Course: Nervous & Endocrine Systems", url: "https://www.youtube.com/watch?v=x4PPZCLnVkA"}
+    ],
+    'Immunforsvar': [
+        {text: "Skolerom.no – Immunsystemet", url: "https://skolerom.no/undervisning/immunsystemet-3/"},
+        {text: "Crash Course: Viruses & Vaccines", url: "https://www.youtube.com/watch?v=L99Wd_w4E3s"}
+    ],
+    'Kjemi': [
+        {text: "SNL – Kjemi", url: "https://snl.no/kjemi"},
+        {text: "Crash Course: The Nucleus: Intro to Chemistry", url: "https://www.youtube.com/watch?v=FSyAehMdpyI"}
+    ],
+    'Modeller': [
+        {text: "SNL – Modell (vitenskap)", url: "https://snl.no/modell_-_vitenskap"}
+    ],
+    'Bærekraft': [
+        {text: "FN-sambandet – Bærekraftsmålene", url: "https://www.fn.no/om-fn/fns-baerekraftsmaal"},
+        {text: "Crash Course: The Effects of Climate Change", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}
+    ],
+    'Systemtenkning': [
+        {text: "SNL – Økosystem (Eksempel)", url: "https://snl.no/økosystem"},
+        {text: "Crash Course: Population Ecology (Eksempel)", url: "https://www.youtube.com/watch?v=RBOsqmBQBQk"}
+    ]
+};
+
+
+        let currentQuestion = 0, score = 0;
+        let weakCategories = new Set(), categoryScores = {}, categoryTotals = {};
+        let bestTopics = [], chosenTopic = "", hardCurrent = 0, hardScore = 0;
+        let myChart = null;
+
+        function buildQuiz() {
+            const container = document.getElementById('question-container');
+            quizData.forEach((q, index) => {
+                const div = document.createElement('div');
+                div.className = `question ${index === 0 ? 'active' : ''}`;
+                div.innerHTML = `<h3>Spørsmål ${index + 1}</h3><p>${q.question}</p>${q.answers.map((a, i) => `<button onclick="selectAnswer(${i}, ${index})">${a}</button>`).join('')}`;
+                container.appendChild(div);
+            });
+            updateProgress();
+        }
+
+        function selectAnswer(selectedIndex, questionIndex) {
+            const question = quizData[questionIndex];
+            if (!categoryScores[question.category]) { categoryScores[question.category] = 0; categoryTotals[question.category] = 0; }
+            categoryTotals[question.category]++;
+            if (selectedIndex === question.correct) { score++; categoryScores[question.category]++; } else { weakCategories.add(question.category); }
+            showNextQuestion();
+        }
+
+        function showNextQuestion() {
+            const questions = document.querySelectorAll('.question');
+            questions[currentQuestion].classList.remove('active');
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                questions[currentQuestion].classList.add('active');
+                updateProgress();
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / quizData.length) * 100;
+            document.querySelector('.progress').style.width = `${progress}%`;
+        }
+
+        function showResults() {
+            document.getElementById('main-quiz').style.display = 'none';
+            document.getElementById('score').textContent = score;
+            document.getElementById('results').style.display = 'block';
+
+            let maxPercent = -1;
+            bestTopics = [];
+            const allCategories = Object.keys(categoryTotals);
+            
+            for (let cat of allCategories) {
+                const percent = (categoryScores[cat] || 0) / categoryTotals[cat];
+                if (percent > maxPercent) {
+                    maxPercent = percent;
+                    bestTopics = [cat];
+                } else if (percent === maxPercent) {
+                    bestTopics.push(cat);
+                }
+            }
+
+            const feedback = document.getElementById('feedback');
+            if (weakCategories.size === 0 && score === quizData.length) {
+                feedback.innerHTML = `<h3>Forbedringsområder:</h3><p>Fantastisk! Full pott! Du har god kontroll på alle temaene. 👏</p>`;
+            } else if (weakCategories.size === 0) {
+                 feedback.innerHTML = `<h3>Forbedringsområder:</h3><p>Veldig bra! Du har god kontroll på alle temaene, selv om ikke alt var 100% riktig.</p>`;
+            } else {
+                feedback.innerHTML = `<h3>Forbedringsområder:</h3>${Array.from(weakCategories).map(cat => `<div class="category"><strong>${cat}:</strong><ul>${categoryLinks[cat] ? categoryLinks[cat].map(link =>`<li><a href="${link.url}" target="_blank">${link.text}</a></li>`).join('') : '<li>Søk på naturfag.no for mer informasjon.</li>'}</ul></div>`).join('')}`;
+            }
+
+            const bestDiv = document.getElementById('best-topics');
+            if(bestTopics.length > 0 && maxPercent >= 0.6) {
+                bestDiv.innerHTML = `<h3>Dine sterkeste temaer:</h3><ul>${bestTopics.map(cat => `<li>${cat}</li>`).join('')}</ul>`;
+                document.getElementById('next-step').innerHTML = `<h3>Vil du prøve deg på en ekspertquiz i et av dine beste temaer?</h3><button id="go-to-hard">Ja, jeg vil prøve!</button>`;
+                document.getElementById('go-to-hard').onclick = showChooseTopic;
+            } else {
+                bestDiv.innerHTML = `<h3>Fortsett å øve!</h3><p>Ta quizen på nytt for å se om du kan forbedre deg.</p>`;
+                 document.getElementById('next-step').innerHTML = `<button onclick="location.reload()">Ta Grunnquizen På Nytt</button>`;
+            }
+            
+            drawResultsChart();
+        }
+
+        function drawResultsChart() {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            
+            const labels = Object.keys(categoryTotals);
+            const data = labels.map(label => {
+                const score = categoryScores[label] || 0;
+                const total = categoryTotals[label] || 1;
+                return (score / total) * 100;
+            });
+            
+            if (myChart) { myChart.destroy(); }
+
+            myChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Din poengsum (%)',
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 80, 158, 0.2)',
+                        borderColor: 'rgb(0, 80, 158)',
+                        pointBackgroundColor: 'rgb(0, 80, 158)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(0, 80, 158)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    elements: { line: { borderWidth: 3 } },
+                    scales: { r: { angleLines: { color: 'rgba(0, 0, 0, 0.1)' }, grid: { color: 'rgba(0, 0, 0, 0.1)' }, pointLabels: { font: { size: 12 } }, ticks: { beginAtZero: true, min: 0, max: 100, stepSize: 25, backdropColor: 'rgba(255, 255, 255, 0.75)' } } }
+                }
+            });
+        }
+
+        function showChooseTopic() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('choose-topic').style.display = 'block';
+            const topicBtns = document.getElementById('topic-buttons');
+            topicBtns.innerHTML = bestTopics.filter(topic => hardQuestions[topic]).map(cat => `<button class="topic-btn" onclick="startHardQuiz('${cat}')">${cat}</button>`).join('');
+            if (topicBtns.innerHTML === "") {
+                topicBtns.innerHTML = "<p>Beklager, det er ingen ekspertquiz for dine beste temaer akkurat nå. Bra jobbet uansett!</p><button onclick='location.reload()'>Start på nytt</button>";
+            }
+        }
+
+        function startHardQuiz(topic) {
+            chosenTopic = topic; hardCurrent = 0; hardScore = 0;
+            document.getElementById('choose-topic').style.display = 'none';
+            document.getElementById('hard-quiz').style.display = 'block';
+            buildHardQuiz();
+        }
+
+        function buildHardQuiz() {
+            const container = document.getElementById('hard-question-container');
+            container.innerHTML = '';
+            showHardQuestion();
+        }
+
+
+
+        function showHardQuestion() {
+            const container = document.getElementById('hard-question-container');
+            container.innerHTML = '';
+            const questions = hardQuestions[chosenTopic];
+            if (hardCurrent < questions.length) {
+                const q = questions[hardCurrent];
+                container.innerHTML = `<h3>Ekspertspørsmål ${hardCurrent + 1} av 5 (${chosenTopic})</h3><p>${q.question}</p>${q.answers.map((a, i) => `<button onclick="selectHardAnswer(${i})">${a}</button>`).join('')}`;
+            } else {
+                showHardResults();
+            }
+        }
+
+        function selectHardAnswer(selectedIndex) {
+            const questions = hardQuestions[chosenTopic];
+            if (selectedIndex === questions[hardCurrent].correct) { hardScore++; }
+            hardCurrent++;
+            showHardQuestion();
+        }
+
+        function showHardResults() {
+            document.getElementById('hard-quiz').style.display = 'none';
+            document.getElementById('hard-results').style.display = 'block';
+            document.getElementById('hard-score').textContent = hardScore;
+        }
+
+        document.getElementById('start-quiz-btn').addEventListener('click', () => {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('main-quiz').style.display = 'block';
+            buildQuiz();
+        });
+
+        window.selectAnswer = selectAnswer;
+        window.startHardQuiz = startHardQuiz;
+        window.selectHardAnswer = selectHardAnswer;
+    </script>
+</body>
+</html>
