@@ -51,7 +51,7 @@
             margin-top: 30px;
             text-align: center;
         }
-        h2 { color: #00509e; }
+        h2, h3 { color: #00509e; }
         .progress-bar { width: 100%; height: 10px; background-color: #e0e0e0; margin-bottom: 20px; border-radius: 5px; overflow: hidden; }
         .progress { height: 100%; background-color: #28a745; width: 0%; transition: width 0.3s ease-in-out; border-radius: 5px; }
         
@@ -113,6 +113,7 @@
                     <div id="feedback"></div>
                 </div>
             </div>
+            <div id="incorrect-summary" style="margin-top: 30px; text-align: left;"></div>
             <div id="best-topics" style="margin-top: 20px;"></div>
             <div id="next-step"></div>
         </div>
@@ -133,41 +134,40 @@
             <button onclick="location.reload()">Start på nytt</button>
         </div>
     </div>
-
     <script>
         const quizData = [
-            {question: "Hva er hovedkilden til energi for jordens klimasystem?", answers: ["Kjernekraft", "Solstråling", "Vindkraft", "Geotermisk energi"], correct: 1, category: "Energi"},
-            {question: "Hva menes med energikvalitet?", answers: ["Hvor mye energi som finnes i et stoff", "Hvor lett energi kan brukes til nyttig arbeid", "Hvor mye varmeenergi som avgis", "Hvor mye energi som tapes i et system"], correct: 1, category: "Energi"},
-            {question: "Hva er den vanligste energiovergangen i et vannkraftverk?", answers: ["Kjemisk energi til elektrisk energi", "Bevegelsesenergi til elektrisk energi", "Strålingsenergi til varmeenergi", "Elektrisk energi til kjemisk energi"], correct: 1, category: "Energi"},
-            {question: "Hva beskriver platetektonikk?", answers: ["Atmosfærens lagdeling", "Bevegelse av jordskorpeplater", "Havstrømmer", "Værmønstre"], correct: 1, category: "Jordvitenskap"},
-            {question: "Hva driver bevegelsen av jordskorpeplatene?", answers: ["Solenergi", "Vannets kretsløp", "Varme fra jordas indre (konveksjonsstrømmer)", "Tyngdekraften fra månen"], correct: 2, category: "Jordvitenskap"},
-            {question: "Hva heter prosessen der en havbunnsplate presses ned under en annen plate?", answers: ["Spredningssone", "Subduksjon", "Transformforkastning", "Jordskjelv"], correct: 1, category: "Jordvitenskap"},
-            {question: "Hva er drivhuseffekten?", answers: ["Når solstråler reflekteres av skyene", "Når atmosfæren slipper ut all varme", "Når visse gasser holder på varmen fra jorda", "Når havet lagrer varme"], correct: 2, category: "Klima"},
-            {question: "Hvilken gass bidrar mest til menneskeskapt global oppvarming?", answers: ["Nitrogen", "Oksygen", "Karbondioksid (CO₂)", "Metan"], correct: 2, category: "Klima"},
-            {question: "Hva kan være en konsekvens av økt CO₂ i atmosfæren?", answers: ["Sterkere jordskjelv", "Havforsuring", "Mindre nedbør", "Mer oksygen i lufta"], correct: 1, category: "Klima"},
-            {question: "Hvilket organelle er ansvarlig for celleånding?", answers: ["Kloroplast", "Cellemembran", "Mitokondrium", "Cellekjerne"], correct: 2, category: "Cellebiologi"},
-            {question: "Hvor skjer fotosyntesen i plantecellen?", answers: ["Mitokondriene", "Kloroplastene", "Cellekjernen", "Cellemembranen"], correct: 1, category: "Cellebiologi"},
-            {question: "Hva er DNA?", answers: ["Et protein", "Arvestoffet i cellene", "En type sukker", "En celleorganell"], correct: 1, category: "Cellebiologi"},
-            {question: "Hva er naturlig utvalg?", answers: ["At alle individer overlever", "At de best tilpassede individene har størst sjanse for å få avkom", "At egenskaper ikke kan endres", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon"},
-            {question: "Hva kan mutasjoner føre til?", answers: ["Ingen endring i egenskaper", "Nye egenskaper som kan arves", "At alle organismer dør", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon"},
-            {question: "Hva brukes fossiler til i naturfag?", answers: ["Å lage energi", "Å forstå livets utvikling", "Å måle temperatur", "Å lage medisiner"], correct: 1, category: "Evolusjon"},
-            {question: "Hva er hovedoppgaven til nervesystemet?", answers: ["Å produsere hormoner", "Å sende raske, elektriske signaler i kroppen", "Å beskytte mot sykdom", "Å lage energi"], correct: 1, category: "Signalsystemer"},
-            {question: "Hva gjør hormonsystemet?", answers: ["Sender kjemiske signaler i blodet", "Produserer oksygen", "Styrer fordøyelsen alene", "Sender elektriske signaler"], correct: 0, category: "Signalsystemer"},
-            {question: "Hvordan påvirker rusmidler ofte hjernen?", answers: ["De styrker alltid hjernecellene", "De kan forstyrre signaloverføringen mellom nerveceller", "De har ingen langtidseffekt", "De bygger nye nerveceller"], correct: 1, category: "Signalsystemer"},
-            {question: "Hva gjør vaksiner?", answers: ["Gjør deg syk med vilje", "Trener immunforsvaret til å kjenne igjen smittestoffer", "Fjerner alle bakterier i kroppen", "Er en kur mot alle sykdommer"], correct: 1, category: "Immunforsvar"},
-            {question: "Hva er immunforsvarets hukommelse?", answers: ["At du husker du var syk", "At spesielle celler husker smittestoffer de har møtt før", "At hjernen lagrer informasjon om bakterier", "En myte"], correct: 1, category: "Immunforsvar"},
-            {question: "Hva er antibiotikaresistens?", answers: ["At mennesker er allergiske mot antibiotika", "At virus blir motstandsdyktige mot medisiner", "At bakterier har utviklet seg til å tåle antibiotika", "At antibiotika virker bedre enn før"], correct: 2, category: "Immunforsvar"},
-            {question: "Hva viser gruppenummeret i periodesystemet?", answers: ["Antall protoner i kjernen", "Antall nøytroner", "Antall elektronskall", "Antall ytterelektroner"], correct: 3, category: "Kjemi"},
-            {question: "Hva er et ion?", answers: ["Et atom som har mistet eller fått elektroner", "En blanding av flere stoffer", "Et atom med likt antall protoner og elektroner", "En type molekyl"], correct: 0, category: "Kjemi"},
-            {question: "Hva skjer i en kjemisk reaksjon?", answers: ["Atomene forsvinner", "Atomene bytter plass og danner nye stoffer", "Energien forsvinner alltid", "Bare fargen endres"], correct: 1, category: "Kjemi"},
-            {question: "Hva kan programmering brukes til i naturfag?", answers: ["Bare til å spille spill", "Til å lage modeller og simulere fenomener", "Bare til å skrive rapporter", "Bare til å regne ut matteoppgaver"], correct: 1, category: "Programmering"},
-            {question: "Hva er en modell i naturfag?", answers: ["En forenklet framstilling av virkeligheten", "En person som viser klær", "En eksakt kopi av naturen", "En type celle"], correct: 0, category: "Modeller"},
-            {question: "Hva betyr bærekraftig utvikling?", answers: ["Å bruke opp alle ressurser raskt", "Å dekke dagens behov uten å ødelegge for fremtidige generasjoner", "Å stoppe all teknologisk utvikling", "Å bare fokusere på økonomisk vekst"], correct: 1, category: "Bærekraft"},
-            {question: "Hva er et økosystem?", answers: ["Alle levende organismer og deres ikke-levende miljø i et område", "Bare dyrene i en skog", "Bare plantene i et hav", "Alle menneskene på jorda"], correct: 0, category: "Bærekraft"},
-            {question: "Hva er hovedårsaken til tap av biologisk mangfold?", answers: ["Naturlige vulkanutbrudd", "Menneskelig aktivitet som ødelegger leveområder", "Fotosyntese", "Vær og vind"], correct: 1, category: "Bærekraft"},
-            {question: "Hva menes med systemtenkning i naturfag?", answers: ["Å bare se på én del av gangen", "Å forstå sammenhenger mellom ulike deler og prosesser", "Å bruke bare modeller", "Å bare fokusere på energi"], correct: 1, category: "Systemtenkning"}
+            {question: "Hva er hovedkilden til energi for jordens klimasystem?", answers: ["Kjernekraft", "Solstråling", "Vindkraft", "Geotermisk energi"], correct: 1, category: "Energi", explanation: "Solen er den primære motoren i jordens klimasystem. Solstrålingen varmer opp land, hav og luft, og driver alt fra vær til havstrømmer."},
+            {question: "Hva menes med energikvalitet?", answers: ["Hvor mye energi som finnes i et stoff", "Hvor lett energi kan brukes til nyttig arbeid", "Hvor mye varmeenergi som avgis", "Hvor mye energi som tapes i et system"], correct: 1, category: "Energi", explanation: "Høy energikvalitet, som elektrisitet, kan enkelt omdannes til mange former for arbeid (lys, varme, bevegelse). Lav energikvalitet, som lavtemperaturvarme, er vanskeligere å utnytte."},
+            {question: "Hva er den vanligste energiovergangen i et vannkraftverk?", answers: ["Kjemisk energi til elektrisk energi", "Bevegelsesenergi til elektrisk energi", "Strålingsenergi til varmeenergi", "Elektrisk energi til kjemisk energi"], correct: 1, category: "Energi", explanation: "I et vannkraftverk blir vannets stillingsenergi omgjort til bevegelsesenergi når det faller. Denne bevegelsen driver en turbin, og en generator omdanner bevegelsesenergien til elektrisk energi."},
+            {question: "Hva beskriver platetektonikk?", answers: ["Atmosfærens lagdeling", "Bevegelse av jordskorpeplater", "Havstrømmer", "Værmønstre"], correct: 1, category: "Jordvitenskap", explanation: "Platetektonikk er den vitenskapelige teorien som forklarer de storskala bevegelsene til jordens ytre lag, de såkalte jordskorpeplatene."},
+            {question: "Hva driver bevegelsen av jordskorpeplatene?", answers: ["Solenergi", "Vannets kretsløp", "Varme fra jordas indre (konveksjonsstrømmer)", "Tyngdekraften fra månen"], correct: 2, category: "Jordvitenskap", explanation: "Varme fra jordas kjerne skaper langsomme strømmer av smeltet stein i mantelen. Disse konveksjonsstrømmene skyver og trekker i jordskorpeplatene på overflaten."},
+            {question: "Hva heter prosessen der en havbunnsplate presses ned under en annen plate?", answers: ["Spredningssone", "Subduksjon", "Transformforkastning", "Jordskjelv"], correct: 1, category: "Jordvitenskap", explanation: "Subduksjon er prosessen der en tektonisk plate, vanligvis en tyngre havbunnsplate, tvinges ned i mantelen under en annen, lettere plate."},
+            {question: "Hva er drivhuseffekten?", answers: ["Når solstråler reflekteres av skyene", "Når atmosfæren slipper ut all varme", "Når visse gasser holder på varmen fra jorda", "Når havet lagrer varme"], correct: 2, category: "Klima", explanation: "Drivhusgasser som CO₂ og vanndamp i atmosfæren absorberer varmestråling fra jorden og hindrer den i å unnslippe til verdensrommet. Dette holder planeten varm nok for liv."},
+            {question: "Hvilken gass bidrar mest til menneskeskapt global oppvarming?", answers: ["Nitrogen", "Oksygen", "Karbondioksid (CO₂)", "Metan"], correct: 2, category: "Klima", explanation: "Selv om det finnes andre sterke drivhusgasser (som metan), er CO₂ den som slippes ut i desidert størst mengde fra menneskelig aktivitet, som forbrenning av fossilt brensel."},
+            {question: "Hva kan være en konsekvens av økt CO₂ i atmosfæren?", answers: ["Sterkere jordskjelv", "Havforsuring", "Mindre nedbør", "Mer oksygen i lufta"], correct: 1, category: "Klima", explanation: "Når havet absorberer CO₂ fra atmosfæren, reagerer det med vann og danner karbonsyre (H₂CO₃). Dette gjør havet surere og kan skade organismer med kalkskall, som koraller og skjell."},
+            {question: "Hvilket organelle er ansvarlig for celleånding?", answers: ["Kloroplast", "Cellemembran", "Mitokondrium", "Cellekjerne"], correct: 2, category: "Cellebiologi", explanation: "Mitokondriene er cellens 'kraftverk'. Her foregår celleåndingen, hvor sukker og oksygen omdannes til ATP, som er cellens energivaluta."},
+            {question: "Hvor skjer fotosyntesen i plantecellen?", answers: ["Mitokondriene", "Kloroplastene", "Cellekjernen", "Cellemembranen"], correct: 1, category: "Cellebiologi", explanation: "Kloroplaster inneholder pigmentet klorofyll, som fanger energi fra sollys. Denne energien brukes til å omdanne CO₂ og vann til glukose (sukker) og oksygen."},
+            {question: "Hva er DNA?", answers: ["Et protein", "Arvestoffet i cellene", "En type sukker", "En celleorganell"], correct: 1, category: "Cellebiologi", explanation: "DNA (deoksyribonukleinsyre) er et stort molekyl som inneholder de genetiske instruksjonene (oppskriftene) for utvikling, funksjon og reproduksjon av alle kjente organismer."},
+            {question: "Hva er naturlig utvalg?", answers: ["At alle individer overlever", "At de best tilpassede individene har størst sjanse for å få avkom", "At egenskaper ikke kan endres", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon", explanation: "Naturlig utvalg er mekanismen der individer med arvelige egenskaper som gir dem en fordel i sitt miljø, har større sannsynlighet for å overleve og reprodusere seg."},
+            {question: "Hva kan mutasjoner føre til?", answers: ["Ingen endring i egenskaper", "Nye egenskaper som kan arves", "At alle organismer dør", "At miljøet ikke har betydning"], correct: 1, category: "Evolusjon", explanation: "Mutasjoner er tilfeldige endringer i DNA. De er kilden til genetisk variasjon, som kan gi nye egenskaper. Disse egenskapene er råmaterialet for evolusjon gjennom naturlig utvalg."},
+            {question: "Hva brukes fossiler til i naturfag?", answers: ["Å lage energi", "Å forstå livets utvikling", "Å måle temperatur", "Å lage medisiner"], correct: 1, category: "Evolusjon", explanation: "Fossiler er bevarte rester av tidligere livsformer. De gir direkte bevis på hvordan arter har endret seg over geologisk tid og viser slektskap mellom ulike grupper."},
+            {question: "Hva er hovedoppgaven til nervesystemet?", answers: ["Å produsere hormoner", "Å sende raske, elektriske signaler i kroppen", "Å beskytte mot sykdom", "Å lage energi"], correct: 1, category: "Signalsystemer", explanation: "Nervesystemet bruker nerveceller til å sende raske, elektriske og kjemiske signaler for å koordinere kroppens handlinger og sanseinformasjon."},
+            {question: "Hva gjør hormonsystemet?", answers: ["Sender kjemiske signaler i blodet", "Produserer oksygen", "Styrer fordøyelsen alene", "Sender elektriske signaler"], correct: 0, category: "Signalsystemer", explanation: "Hormonsystemet består av kjertler som produserer hormoner. Disse transporteres med blodet og fungerer som langsomme, kjemiske budbringere som regulerer prosesser som vekst og metabolisme."},
+            {question: "Hvordan påvirker rusmidler ofte hjernen?", answers: ["De styrker alltid hjernecellene", "De kan forstyrre signaloverføringen mellom nerveceller", "De har ingen langtidseffekt", "De bygger nye nerveceller"], correct: 1, category: "Signalsystemer", explanation: "Mange rusmidler etterligner eller blokkerer kroppens egne signalstoffer (nevrotransmittere) i synapsene, noe som forstyrrer normal hjernefunksjon og kommunikasjon mellom nerveceller."},
+            {question: "Hva gjør vaksiner?", answers: ["Gjør deg syk med vilje", "Trener immunforsvaret til å kjenne igjen smittestoffer", "Fjerner alle bakterier i kroppen", "Er en kur mot alle sykdommer"], correct: 1, category: "Immunforsvar", explanation: "Vaksiner inneholder en ufarlig versjon av et smittestoff (eller deler av det) som lærer immunforsvaret å produsere antistoffer og hukommelsesceller uten at man må bli syk."},
+            {question: "Hva er immunforsvarets hukommelse?", answers: ["At du husker du var syk", "At spesielle celler husker smittestoffer de har møtt før", "At hjernen lagrer informasjon om bakterier", "En myte"], correct: 1, category: "Immunforsvar", explanation: "Etter en infeksjon eller vaksine danner kroppen hukommelsesceller. Disse gjør at immunforsvaret reagerer mye raskere og kraftigere neste gang det møter det samme smittestoffet."},
+            {question: "Hva er antibiotikaresistens?", answers: ["At mennesker er allergiske mot antibiotika", "At virus blir motstandsdyktige mot medisiner", "At bakterier har utviklet seg til å tåle antibiotika", "At antibiotika virker bedre enn før"], correct: 2, category: "Immunforsvar", explanation: "Gjennom naturlig utvalg kan bakterier med tilfeldige mutasjoner som gjør dem motstandsdyktige overleve antibiotikabehandling og formere seg. Dette fører til resistente bakteriestammer."},
+            {question: "Hva viser gruppenummeret i periodesystemet?", answers: ["Antall protoner i kjernen", "Antall nøytroner", "Antall elektronskall", "Antall ytterelektroner"], correct: 3, category: "Kjemi", explanation: "For hovedgruppene (1-2 og 13-18) viser gruppenummeret antall elektroner i det ytterste elektronskallet. Disse elektronene bestemmer i stor grad atomets kjemiske egenskaper."},
+            {question: "Hva er et ion?", answers: ["Et atom som har mistet eller fått elektroner", "En blanding av flere stoffer", "Et atom med likt antall protoner og elektroner", "En type molekyl"], correct: 0, category: "Kjemi", explanation: "Et nøytralt atom har like mange positive protoner som negative elektroner. Når atomet mister eller får elektroner, får det en netto elektrisk ladning og kalles et ion."},
+            {question: "Hva skjer i en kjemisk reaksjon?", answers: ["Atomene forsvinner", "Atomene bytter plass og danner nye stoffer", "Energien forsvinner alltid", "Bare fargen endres"], correct: 1, category: "Kjemi", explanation: "I en kjemisk reaksjon brytes bindingene i utgangsstoffene, og atomene omorganiseres for å danne nye bindinger og nye stoffer med andre egenskaper. Ingen atomer forsvinner."},
+            {question: "Hva kan programmering brukes til i naturfag?", answers: ["Bare til å spille spill", "Til å lage modeller og simulere fenomener", "Bare til å skrive rapporter", "Bare til å regne ut matteoppgaver"], correct: 1, category: "Programmering", explanation: "Programmering er et kraftig verktøy for å lage dynamiske modeller av komplekse systemer, som klimaendringer, populasjonsvekst eller kjemiske reaksjoner, for å teste hypoteser."},
+            {question: "Hva er en modell i naturfag?", answers: ["En forenklet framstilling av virkeligheten", "En person som viser klær", "En eksakt kopi av naturen", "En type celle"], correct: 0, category: "Modeller", explanation: "Modeller brukes i vitenskap for å forenkle og forstå komplekse systemer eller fenomener som er for store, små eller langsomme til å observere direkte."},
+            {question: "Hva betyr bærekraftig utvikling?", answers: ["Å bruke opp alle ressurser raskt", "Å dekke dagens behov uten å ødelegge for fremtidige generasjoner", "Å stoppe all teknologisk utvikling", "Å bare fokusere på økonomisk vekst"], correct: 1, category: "Bærekraft", explanation: "Dette er den klassiske definisjonen fra Brundtlandkommisjonen. Den innebærer en balanse mellom sosiale, økonomiske og miljømessige hensyn for nåværende og fremtidige generasjoner."},
+            {question: "Hva er et økosystem?", answers: ["Alle levende organismer og deres ikke-levende miljø i et område", "Bare dyrene i en skog", "Bare plantene i et hav", "Alle menneskene på jorda"], correct: 0, category: "Bærekraft", explanation: "Et økosystem inkluderer samspillet mellom de biotiske (levende) faktorene (planter, dyr, sopp) og de abiotiske (ikke-levende) faktorene (sollys, vann, jord, klima)."},
+            {question: "Hva er hovedårsaken til tap av biologisk mangfold?", answers: ["Naturlige vulkanutbrudd", "Menneskelig aktivitet som ødelegger leveområder", "Fotosyntese", "Vær og vind"], correct: 1, category: "Bærekraft", explanation: "Endring av arealbruk, som avskoging for landbruk, nedbygging og forurensning, er den største enkeltårsaken til at arter mister sine hjem og populasjoner reduseres globalt."},
+            {question: "Hva menes med systemtenkning i naturfag?", answers: ["Å bare se på én del av gangen", "Å forstå sammenhenger mellom ulike deler og prosesser", "Å bruke bare modeller", "Å bare fokusere på energi"], correct: 1, category: "Systemtenkning", explanation: "Systemtenkning handler om å se helheten og hvordan de ulike komponentene i et system (f.eks. et økosystem eller klimasystemet) påvirker hverandre, i stedet for å studere enkeltdeler isolert."}
         ];
-
+        
         const hardQuestions = {
             'Energi': [
                 {question: "Hva er den viktigste grunnen til at elektrisk energi regnes som høyverdig energi?", answers: ["Den er lett å lagre", "Den kan enkelt omdannes til andre energiformer med lite tap", "Den er billig å produsere", "Den finnes naturlig overalt"], correct: 1},
@@ -205,58 +205,25 @@
                 {question: "Hva er en mutasjon?", answers: ["En permanent endring i DNA-sekvensen", "En ny art som oppstår plutselig", "En type celle som deler seg ukontrollert", "Et protein som ikke fungerer"], correct: 0}
             ]
         };
-
         const categoryLinks = {
-    'Energi': [
-        {text: "SNL – Energi", url: "https://snl.no/energi"},
-        {text: "Crash Course: Energy & Chemistry", url: "https://www.youtube.com/watch?v=GqtUWyDR1fg"}
-    ],
-    'Jordvitenskap': [
-        {text: "SNL – Platetektonikk", url: "https://snl.no/platetektonikk"},
-        {text: "Crash Course: Plate Tectonics", url: "https://www.youtube.com/watch?v=kwfNGatxUJI"}
-    ],
-    'Klima': [
-        {text: "Viten.no – Klimaendringer (Interaktiv)", url: "https://viten.no/klima"},
-        {text: "Crash Course: What is Climate Change?", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}
-    ],
-    'Cellebiologi': [
-        {text: "NDLA.no – Cellens deler og funksjoner", url: "https://ndla.no/nb/r/naturfag-sf/cella/1eeab098e4"},
-        {text: "Crash Course: A Tour of the Cell", url: "https://www.youtube.com/watch?v=8IlzKri08kk"}
-    ],
-    'Evolusjon': [
-        {text: "Viten.no – Evolusjon (Interaktiv)", url: "https://viten.no/evolusjon/"},
-        {text: "Crash Course: Intro to Evolution", url: "https://www.youtube.com/watch?v=P3GagfbA2vo"}
-    ],
-    'Signalsystemer': [
-        {text: "SNL – Nervesystemet", url: "https://snl.no/nervesystemet"},
-        {text: "Crash Course: Nervous & Endocrine Systems", url: "https://www.youtube.com/watch?v=x4PPZCLnVkA"}
-    ],
-    'Immunforsvar': [
-        {text: "Skolerom.no – Immunsystemet", url: "https://skolerom.no/undervisning/immunsystemet-3/"},
-        {text: "Crash Course: Viruses & Vaccines", url: "https://www.youtube.com/watch?v=L99Wd_w4E3s"}
-    ],
-    'Kjemi': [
-        {text: "SNL – Kjemi", url: "https://snl.no/kjemi"},
-        {text: "Crash Course: The Nucleus: Intro to Chemistry", url: "https://www.youtube.com/watch?v=FSyAehMdpyI"}
-    ],
-    'Modeller': [
-        {text: "SNL – Modell (vitenskap)", url: "https://snl.no/modell_-_vitenskap"}
-    ],
-    'Bærekraft': [
-        {text: "FN-sambandet – Bærekraftsmålene", url: "https://www.fn.no/om-fn/fns-baerekraftsmaal"},
-        {text: "Crash Course: The Effects of Climate Change", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}
-    ],
-    'Systemtenkning': [
-        {text: "SNL – Økosystem (Eksempel)", url: "https://snl.no/økosystem"},
-        {text: "Crash Course: Population Ecology (Eksempel)", url: "https://www.youtube.com/watch?v=RBOsqmBQBQk"}
-    ]
-};
-
+            'Energi': [{text: "SNL – Energi", url: "https://snl.no/energi"},{text: "Crash Course: Energy & Chemistry", url: "https://www.youtube.com/watch?v=GqtUWyDR1fg"}],
+            'Jordvitenskap': [{text: "SNL – Platetektonikk", url: "https://snl.no/platetektonikk"},{text: "Crash Course: Plate Tectonics", url: "https://www.youtube.com/watch?v=kwfNGatxUJI"}],
+            'Klima': [{text: "Viten.no – Klimaendringer (Interaktiv)", url: "https://viten.no/klima"},{text: "Crash Course: What is Climate Change?", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}],
+            'Cellebiologi': [{text: "NDLA.no – Cellens deler og funksjoner", url: "https://ndla.no/nb/r/naturfag-sf/cella/1eeab098e4"},{text: "Crash Course: A Tour of the Cell", url: "https://www.youtube.com/watch?v=8IlzKri08kk"}],
+            'Evolusjon': [{text: "Viten.no – Evolusjon (Interaktiv)", url: "https://viten.no/evolusjon/"},{text: "Crash Course: Intro to Evolution", url: "https://www.youtube.com/watch?v=P3GagfbA2vo"}],
+            'Signalsystemer': [{text: "SNL – Nervesystemet", url: "https://snl.no/nervesystemet"},{text: "Crash Course: Nervous & Endocrine Systems", url: "https://www.youtube.com/watch?v=x4PPZCLnVkA"}],
+            'Immunforsvar': [{text: "Skolerom.no – Immunsystemet", url: "https://skolerom.no/undervisning/immunsystemet-3/"},{text: "Crash Course: Viruses & Vaccines", url: "https://www.youtube.com/watch?v=L99Wd_w4E3s"}],
+            'Kjemi': [{text: "SNL – Kjemi", url: "https://snl.no/kjemi"},{text: "Crash Course: The Nucleus: Intro to Chemistry", url: "https://www.youtube.com/watch?v=FSyAehMdpyI"}],
+            'Modeller': [{text: "SNL – Modell (vitenskap)", url: "https://snl.no/modell_-_vitenskap"}],
+            'Bærekraft': [{text: "FN-sambandet – Bærekraftsmålene", url: "https://www.fn.no/om-fn/fns-baerekraftsmaal"},{text: "Crash Course: The Effects of Climate Change", url: "https://www.youtube.com/watch?v=wYi24D9lH2s"}],
+            'Systemtenkning': [{text: "SNL – Økosystem (Eksempel)", url: "https://snl.no/økosystem"},{text: "Crash Course: Population Ecology (Eksempel)", url: "https://www.youtube.com/watch?v=RBOsqmBQBQk"}]
+        };
 
         let currentQuestion = 0, score = 0;
         let weakCategories = new Set(), categoryScores = {}, categoryTotals = {};
         let bestTopics = [], chosenTopic = "", hardCurrent = 0, hardScore = 0;
         let myChart = null;
+        let incorrectlyAnswered = []; // NY: Liste for feil svar
 
         function buildQuiz() {
             const container = document.getElementById('question-container');
@@ -273,7 +240,12 @@
             const question = quizData[questionIndex];
             if (!categoryScores[question.category]) { categoryScores[question.category] = 0; categoryTotals[question.category] = 0; }
             categoryTotals[question.category]++;
-            if (selectedIndex === question.correct) { score++; categoryScores[question.category]++; } else { weakCategories.add(question.category); }
+            if (selectedIndex === question.correct) {
+                score++; categoryScores[question.category]++;
+            } else {
+                weakCategories.add(question.category);
+                incorrectlyAnswered.push(questionIndex); // NY: Legg til indeks for feil svar
+            }
             showNextQuestion();
         }
 
@@ -322,6 +294,21 @@
                 feedback.innerHTML = `<h3>Forbedringsområder:</h3>${Array.from(weakCategories).map(cat => `<div class="category"><strong>${cat}:</strong><ul>${categoryLinks[cat] ? categoryLinks[cat].map(link =>`<li><a href="${link.url}" target="_blank">${link.text}</a></li>`).join('') : '<li>Søk på naturfag.no for mer informasjon.</li>'}</ul></div>`).join('')}`;
             }
 
+            // NY: Vis oppsummering av feil svar
+            const summaryContainer = document.getElementById('incorrect-summary');
+            if (incorrectlyAnswered.length > 0) {
+                let summaryHTML = '<h3>Oppsummering av feil svar:</h3>';
+                incorrectlyAnswered.forEach(index => {
+                    const q = quizData[index];
+                    summaryHTML += `<div class="category">
+                        <p><strong>Spørsmål:</strong> ${q.question}</p>
+                        <p><strong>Riktig svar:</strong> ${q.answers[q.correct]}</p>
+                        <p><em><strong>Forklaring:</strong> ${q.explanation}</em></p>
+                    </div>`;
+                });
+                summaryContainer.innerHTML = summaryHTML;
+            }
+
             const bestDiv = document.getElementById('best-topics');
             if(bestTopics.length > 0 && maxPercent >= 0.6) {
                 bestDiv.innerHTML = `<h3>Dine sterkeste temaer:</h3><ul>${bestTopics.map(cat => `<li>${cat}</li>`).join('')}</ul>`;
@@ -337,16 +324,9 @@
 
         function drawResultsChart() {
             const ctx = document.getElementById('resultsChart').getContext('2d');
-            
             const labels = Object.keys(categoryTotals);
-            const data = labels.map(label => {
-                const score = categoryScores[label] || 0;
-                const total = categoryTotals[label] || 1;
-                return (score / total) * 100;
-            });
-            
+            const data = labels.map(label => (categoryScores[label] || 0) / (categoryTotals[label] || 1) * 100);
             if (myChart) { myChart.destroy(); }
-
             myChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -394,8 +374,6 @@
             container.innerHTML = '';
             showHardQuestion();
         }
-
-
 
         function showHardQuestion() {
             const container = document.getElementById('hard-question-container');
